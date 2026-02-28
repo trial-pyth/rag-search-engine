@@ -11,3 +11,10 @@ wheels/
 
 # data
 /data/
+
+# caches
+cache/
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+.coverage
