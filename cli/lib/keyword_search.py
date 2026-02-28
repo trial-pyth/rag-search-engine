@@ -52,6 +52,11 @@ class InvertedIndex:
 
         return math.log((doc_count+1) / (term_doc_count + 1)) 
 
+    def get_tfidf(self, doc_id, term):
+        tf = self.get_tf(doc_id, term)
+        idf = self.get_idf(term)
+        return tf*idf
+
     def save(self):
         os.makedirs(CACHE_PATH, exist_ok=True)
         with open( self.index_path, 'wb') as f:
@@ -81,6 +86,13 @@ def idf_command(term):
     idx.load()
     idf = idx.get_idf(term)
     print(f"Inverse document frequency of '{term}': {idf:.2f}")
+
+def tfidf_command(doc_id, term):
+    idx = InvertedIndex()
+    idx.load()
+    # CLI passes doc_id as string; index uses int IDs from data.
+    tf_idf = idx.get_tfidf(int(doc_id), term)
+    print(f"TF-IDF score of '{term}' in document  '{doc_id}': {tf_idf:.2f}")
 
 def clean_text(text):
     text=  text.lower()
