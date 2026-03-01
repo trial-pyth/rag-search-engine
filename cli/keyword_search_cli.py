@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
 import argparse
-from lib.keyword_search import search_command, build_command, tf_command, idf_command, tfidf_command
+from lib.keyword_search import search_command, build_command, tf_command, idf_command, tfidf_command, bm25_idf_command, bm25_tf_command, bm25_search
+from lib.search_utils import BM25_K1, BM25_B
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Keyword Search CLI")
@@ -11,17 +13,28 @@ def main() -> None:
     search_parser.add_argument("query", type=str, help="Search query")
     search_parser = subparsers.add_parser("build", help="Search movies using BM25")
 
-    search_parser = subparsers.add_parser("tf", help="Calculate term frequency")
-    search_parser.add_argument("doc_id", type=str, help="Dpcument ID to check")
-    search_parser.add_argument("term", type=str, help="Search term to find counts for")
+    tf_parser = subparsers.add_parser("tf", help="Calculate term frequency")
+    tf_parser.add_argument("doc_id", type=str, help="Dpcument ID to check")
+    tf_parser.add_argument("term", type=str, help="Search term to find counts for")
     
-    search_parser = subparsers.add_parser("idf", help="Calculate Inverse document frquency")
-    search_parser.add_argument("term", type=str, help="Search term to find counts for")
+    idf_parser = search_parser = subparsers.add_parser("idf", help="Calculate Inverse document frquency")
+    idf_parser.add_argument("term", type=str, help="Search term to find counts for")
 
-    search_parser = subparsers.add_parser("tfidf", help="Calculate term frequency * inverse document frequency ")
-    search_parser.add_argument("doc_id", type=str, help="Dpcument ID to check")
-    search_parser.add_argument("term", type=str, help="Search term to find counts for")
+    tfidf_parser = subparsers.add_parser("tfidf", help="Calculate term frequency * inverse document frequency ")
+    tfidf_parser.add_argument("doc_id", type=str, help="Dpcument ID to check")
+    tfidf_parser.add_argument("term", type=str, help="Search term to find counts for")
     
+    bm25_idf_parser = subparsers.add_parser("bm25idf", help="Calculate BM25IDFF")
+    bm25_idf_parser.add_argument("term", type=str, help="Search term to find counts for")
+
+    bm25_tf_parser = subparsers.add_parser( "bm25tf", help="Get BM25 TF score for a given document ID and term")
+    bm25_tf_parser.add_argument("doc_id", type=int, help="Document ID")
+    bm25_tf_parser.add_argument("term", type=str, help="Term to get BM25 TF score for")
+    bm25_tf_parser.add_argument("k1", type=float, nargs='?', default=BM25_K1, help="Tunable BM25 K1 parameter")
+    bm25_tf_parser.add_argument("b", type=float, nargs='?', default=BM25_B, help="Tunable BM25 b parameter")
+
+    bm25search_parser = subparsers.add_parser("bm25search", help="Search movies using full BM25 scoring")
+    bm25search_parser.add_argument("query", type=str, help="Search query")
 
     args = parser.parse_args()
 
@@ -39,6 +52,16 @@ def main() -> None:
             idf_command(args.term)
         case "tfidf":
             tfidf_command(args.doc_id, args.term)
+        case "bm25idf":
+            bm25idf = bm25_idf_command(args.term)
+            print(f"BM25 IDF score of '{args.term}': {bm25idf:.2f}")
+        case "bm25tf":
+            bm25tf = bm25_tf_command(args.doc_id,args.term, args.k1, args.b)
+            print(f"BM25 TF score of '{args.term}' in document '{args.doc_id}': {bm25tf:.2f}")
+        case "bm25search":
+            bm25_results = bm25_search(args.query)
+            for idx, res in enumerate(bm25_results):
+                print(f"{idx}, {res['doc_id']} {res['title']} - Score: {res['score']:.2f}")
         case _:
             parser.print_help()
 
