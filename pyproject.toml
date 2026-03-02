@@ -5,6 +5,7 @@ description = "RAG Search Implementation"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "huggingface-hub>=1.5.0",
     "nltk==3.9.1",
     "numpy>=2.4.2",
     "sentence-transformers>=5.2.3",
