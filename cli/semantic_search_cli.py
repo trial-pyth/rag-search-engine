@@ -2,7 +2,7 @@
 from sympy.polys.polyconfig import query
 
 import argparse
-from lib.semantic_search import verify_model, embed_text, verify_embeddings, embed_query_text, search
+from lib.semantic_search import verify_model, embed_text, verify_embeddings, embed_query_text, search, chunk_text
 
 def main():
     parser = argparse.ArgumentParser(description="Semantic Search CLI")
@@ -22,9 +22,16 @@ def main():
     search_subparser.add_argument("query", type = str, help = "User query to be searched" )
     search_subparser.add_argument("--limit", type = int, default = 5, help = "User specidifed limit for search results"  )
 
+    chunk_subparser = subparsers.add_parser("chunk", help="Chunk a document")
+    chunk_subparser.add_argument("text", type = str, help = "Document to be chunked" )
+    chunk_subparser.add_argument("--overlap", type = int, help = "Number of overlapping words while chunking")
+    chunk_subparser.add_argument("--chunk-size", type = int, default = 200, help = "Number of words in each fixed sized chunk")
+
     args = parser.parse_args()
 
     match args.command:
+        case "chunk":
+            chunk_text(args.text, args.overlap ,args.chunk_size)
         case "search":
             search(args.query)
         case "embedquery":
