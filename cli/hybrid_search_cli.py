@@ -1,16 +1,23 @@
 import argparse
-from lib.hybrid_search import normalize_scores
+from lib.hybrid_search import normalize_scores, weighted_search
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Hybrid Search CLI")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
-    norm_parser= subparsers.add_parser(name="normalize", help="Available commands")
+    norm_parser= subparsers.add_parser(name="normalize", help="Normalize scores")
     norm_parser.add_argument('scores', type=float, nargs='+', help='List of scores to normalize')
+
+    ws_parser= subparsers.add_parser(name="weighted-search", help="Weighted Search")
+    ws_parser.add_argument('query', type=str, help='User query')
+    ws_parser.add_argument('--alpha', type=float ,default=0.5 ,help='Value of constant alpha α')
+    ws_parser.add_argument('--limit', type=int, default=5 , help='Number of results to be returned')
 
     args = parser.parse_args()
 
     match args.command:
+        case "weighted-search":
+            weighted_search(args.query, args.alpha, args.limit)
         case "normalize":
             norm_scores = normalize_scores(args.scores)
             for norm_score in norm_scores:

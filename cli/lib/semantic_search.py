@@ -4,7 +4,7 @@ import json
 import re
 from pathlib import Path
 from typing import Any
-from lib.search_utils import load_movies
+from lib.search_utils import load_movies, load_stopwords
 
 try:
     import numpy as np  # type: ignore
@@ -159,7 +159,16 @@ class ChunkedSemanticSearch(SemanticSearch):
                 f"{len(chunk_embeddings)} != {len(self.chunk_metadata)}"
             )
 
-        query_emb = self.generate_embedding(query)
+        stopwords = set(load_stopwords())
+        query_tokens = [
+            tok
+            for tok in re.findall(r"[A-Za-z0-9]+", query.lower())
+            if tok and tok not in stopwords and len(tok) > 2
+        ]
+        # Use both the full query and its meaningful tokens. This helps cases like
+        # "British Bear" where some documents match only one concept strongly.
+        query_variants = [query] + query_tokens
+        query_embs = self.model.encode(query_variants)
 
         best_by_movie_id: dict[Any, tuple[float, dict[str, Any]]] = {}
         for idx in range(len(chunk_embeddings)):
@@ -169,10 +178,10 @@ class ChunkedSemanticSearch(SemanticSearch):
             if movie_id is None:
                 continue
 
-            sim = cosine_similarity(query_emb, chunk_embedding)
+            sim = max(float(cosine_similarity(qe, chunk_embedding)) for qe in query_embs)
             current_best = best_by_movie_id.get(movie_id)
             if current_best is None or sim > current_best[0]:
-                best_by_movie_id[movie_id] = (float(sim), metadata)
+                best_by_movie_id[movie_id] = (sim, metadata)
 
         movies_scores_sorted = sorted(
             best_by_movie_id.items(), key=lambda item: item[1][0], reverse=True
@@ -186,7 +195,7 @@ class ChunkedSemanticSearch(SemanticSearch):
                     "id": doc["id"],
                     "title": doc["title"],
                     "description": doc.get("description", "")[:200],
-                    "score": round(score, 4),
+                    "score": float(score),
                     "metadata": {
                         "chunk_idx": metadata.get("chunk_idx"),
                         "chunk_text": metadata.get("text", "")[:200],
