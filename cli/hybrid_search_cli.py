@@ -1,5 +1,5 @@
 import argparse
-from lib.hybrid_search import normalize_scores, weighted_search
+from lib.hybrid_search import normalize_scores, weighted_search, rrf_search
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Hybrid Search CLI")
@@ -12,10 +12,17 @@ def main() -> None:
     ws_parser.add_argument('query', type=str, help='User query')
     ws_parser.add_argument('--alpha', type=float ,default=0.5 ,help='Value of constant alpha α')
     ws_parser.add_argument('--limit', type=int, default=5 , help='Number of results to be returned')
+    
+    rrf_parser= subparsers.add_parser(name="rrf-search", help="RRF Search")
+    rrf_parser.add_argument('query', type=str, help='User query')
+    rrf_parser.add_argument('--k', type=int ,default=0.5 ,help='Value of constant alpha k')
+    rrf_parser.add_argument('--limit', type=int, default=5 , help='Number of results to be returned')
 
     args = parser.parse_args()
 
     match args.command:
+        case "rrf-search":
+            rrf_search(args.query, args.k , args.limit)
         case "weighted-search":
             weighted_search(args.query, args.alpha, args.limit)
         case "normalize":
