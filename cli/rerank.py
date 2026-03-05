@@ -1,19 +1,55 @@
-from __future__ import annotations
+import time
+import os
+import math
+import signal
+from dotenv import load_dotenv
+from lib.search_utils import PROMPT_PATH
 
-from typing import Any
+load_dotenv()
+ai_gateway_api_key = os.environ.get("AI_GATEWAY_API_KEY")
+if not ai_gateway_api_key:
+    raise RuntimeError("AI_GATEWAY_API_KEY environment variable not set")
 
+timeout_seconds = float(os.environ.get("LLM_TIMEOUT_SECONDS", "30"))
 
-def individual_rerank(
-    query: str,
-    documents: list[dict[str, Any]],
-    *,
-    embedder: object | None = None,
-) -> list[dict[str, Any]]:
-    """
-    Deterministic reranker for the Boot.dev project.
+model = "gpt-4o-mini-search-preview"
+from openai import OpenAI
 
-    The curriculum uses this hook to add reranking later; for now we keep it
-    side-effect free and network-free so the CLI remains reliable in the grader.
-    """
-    _ = (query, embedder)
-    return documents
+client = OpenAI(
+    api_key=ai_gateway_api_key,
+    base_url="https://ai-gateway.vercel.sh/v1",
+    timeout=timeout_seconds,
+    max_retries=0,
+)
+
+# Gemini provider (disabled)
+# from google import genai
+# gemini_api_key = os.environ.get("GEMINI_API_KEY")
+# if not gemini_api_key:
+#     raise RuntimeError("GEMINI_API_KEY environment variable not set")
+# model = "gemini-2.0-flash-001"
+# client = genai.Client(api_key=gemini_api_key)
+
+def individual_rerank(query, documents):
+    with open(PROMPT_PATH/'individual_rerank.md') as f:
+        prompt = f.read()
+    results = []
+    for doc in documents:
+        _prompt = prompt.format(
+            query=query,
+            title= doc['title'],
+            description= doc['description']
+        )
+        response = client.responses.create(model=model, input=_prompt)
+        clean_response_text = (response.output_text or "").strip()
+        try:
+            clean_response_text = int(clean_response_text)
+        except:
+            print(f"Failed to case {response.output_text} to int for {doc['title']}")
+            clean_response_text = 0
+        results.append({**doc, 'rerank_response':clean_response_text})
+        time.sleep(3)
+        print({response.output_text, int(response.output_text)})
+
+    results = sorted(results, key=lambda x: x['rerank_response'], reverse=True)
+    return results

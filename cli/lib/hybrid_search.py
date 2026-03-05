@@ -53,11 +53,10 @@ def rrf_search(query, k=60, limit=5, enhance=None, rerank_method = None):
         new_query = augment_prompt(query, enhance)
         print(f"Enhanced query ({enhance}): '{query}' -> '{new_query}'\n")
         query = new_query
-    # Pull a larger candidate set when reranking so we don't miss good results.
-    rrf_limit = max(limit * 5, 200) if rerank_method else limit
+    rrf_limit = limit*5 if rerank_method else 5
     results = hs.rrf_search(query, k, rrf_limit)
     if rerank_method:
-        results = individual_rerank(query, results, embedder=hs.semantic_search)
+        results = individual_rerank(query, results)
         print(f"Reranking top {limit} results using individual method...")
 
     for idx, r in enumerate(results[:limit]):
