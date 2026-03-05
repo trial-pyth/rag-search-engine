@@ -138,13 +138,25 @@ class ChunkedSemanticSearch(SemanticSearch):
         self.document_map = {doc["id"]: doc for doc in documents}
 
         if self.chunk_embeddings_path.exists() and self.chunk_metadata_path.exists():
+            print(
+                f"Loading cached chunk embeddings from {self.chunk_embeddings_path}...",
+                flush=True,
+            )
             chunk_embeddings = np_mod.load(self.chunk_embeddings_path)
             self.chunk_embeddings = chunk_embeddings
 
             with open(self.chunk_metadata_path, 'r', encoding="utf-8") as f:
                 payload = json.load(f)
                 self.chunk_metadata = payload.get("chunks", [])
+            print(
+                f"Loaded {len(self.chunk_metadata)} chunk embeddings from cache.",
+                flush=True,
+            )
             return chunk_embeddings
+        print(
+            "Building chunk embeddings (first run can take a while; results will be cached in `cache/`).",
+            flush=True,
+        )
         return self.build_chunk_embeddings(documents)
 
     def search_chunks(self, query: str, limit: int = 10):

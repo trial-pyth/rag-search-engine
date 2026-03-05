@@ -3,16 +3,18 @@ import os
 from .keyword_search import InvertedIndex
 from .semantic_search import ChunkedSemanticSearch
 from lib.search_utils import load_movies
-from llm import correct_spelling, rewrite_query
+from llm import correct_spelling, rewrite_query, expand_query, augment_prompt
 
 class HybridSearch:
     def __init__(self, documents):
         self.documents = documents
         self.semantic_search = ChunkedSemanticSearch()
+        print("Initializing semantic search (embeddings)...", flush=True)
         self.semantic_search.load_or_create_chunk_embeddings(documents)
 
         self.idx = InvertedIndex()
         if not os.path.exists(self.idx.index_path):
+            print("Building BM25 index (first run only)...", flush=True)
             self.idx.build()
             self.idx.save()
 
@@ -46,15 +48,11 @@ def weighted_search(query, alpha=0.5, limit=5):
 def rrf_search(query, k=60, limit=5, enhance=None):
     movies= load_movies()
     hs = HybridSearch(movies)
-    match enhance:
-        case "spell":
-            new_query = correct_spelling(query)
-            print(f"Enhanced query (spell): '{query}' -> '{new_query}'\n")
-            query = new_query
-        case "rewrite":
-            new_query = rewrite_query(query)
-            print(f"Enhanced query (rewrite): '{query}' -> '{new_query}'\n")
-            query = new_query
+    if enhance:
+        new_query = augment_prompt(query, enhance)
+        print(f"Enhanced query ({enhance}): '{query}' -> '{new_query}'\n")
+        query = new_query
+    
     results = hs.rrf_search(query, k, limit)
     for idx, r in enumerate(results[:limit]):
         print(f"{idx+1} {r['title']}")
