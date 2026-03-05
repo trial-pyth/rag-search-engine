@@ -3,6 +3,7 @@ import os
 from .keyword_search import InvertedIndex
 from .semantic_search import ChunkedSemanticSearch
 from lib.search_utils import load_movies
+from llm import correct_spelling, rewrite_query
 
 class HybridSearch:
     def __init__(self, documents):
@@ -19,7 +20,7 @@ class HybridSearch:
         self.idx.load()
         return self.idx.bm25_search(query, limit)
 
-    def rrf_search(self, query, k, limit=10):
+    def rrf_search(self, query, k, limit=10, enhance=None):
         bm25_results = self._bm25_search(query, limit*10)
         sem_results = self.semantic_search.search_chunks(query, limit=limit*10)
         combined_results = rrf_combine_search_results(bm25_results, sem_results, k)
@@ -42,9 +43,18 @@ def weighted_search(query, alpha=0.5, limit=5):
         print(f"BM25: {r['bm25_score']}, Semantic: {r['sem_score']}")
         print(r['description'][:100])
 
-def rrf_search(query, k=60, limit=5):
+def rrf_search(query, k=60, limit=5, enhance=None):
     movies= load_movies()
     hs = HybridSearch(movies)
+    match enhance:
+        case "spell":
+            new_query = correct_spelling(query)
+            print(f"Enhanced query (spell): '{query}' -> '{new_query}'\n")
+            query = new_query
+        case "rewrite":
+            new_query = rewrite_query(query)
+            print(f"Enhanced query (rewrite): '{query}' -> '{new_query}'\n")
+            query = new_query
     results = hs.rrf_search(query, k, limit)
     for idx, r in enumerate(results[:limit]):
         print(f"{idx+1} {r['title']}")

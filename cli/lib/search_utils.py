@@ -8,6 +8,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATA_PATH = PROJECT_ROOT / 'data'
 MOVIES_PATH = DATA_PATH / 'movies.json'
 STOPWORDS_PATH = DATA_PATH / 'stopwords.txt'
+PROMPT_PATH = PROJECT_ROOT/'cli'/'lib'/'prompts'
 
 CACHE_PATH = PROJECT_ROOT / 'cache'
 

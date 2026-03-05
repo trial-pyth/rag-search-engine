@@ -17,12 +17,13 @@ def main() -> None:
     rrf_parser.add_argument('query', type=str, help='User query')
     rrf_parser.add_argument('--k', type=int ,default=0.5 ,help='Value of constant alpha k')
     rrf_parser.add_argument('--limit', type=int, default=5 , help='Number of results to be returned')
+    rrf_parser.add_argument('--enhance', type=str, choices=["spell", "rewrite"] , help='Query enhancement')
 
     args = parser.parse_args()
 
     match args.command:
         case "rrf-search":
-            rrf_search(args.query, args.k , args.limit)
+            rrf_search(args.query, args.k , args.limit, args.enhance)
         case "weighted-search":
             weighted_search(args.query, args.alpha, args.limit)
         case "normalize":

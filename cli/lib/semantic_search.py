@@ -194,6 +194,7 @@ class ChunkedSemanticSearch(SemanticSearch):
                 {
                     "id": doc["id"],
                     "title": doc["title"],
+                    "document": doc.get("description", "")[:200],
                     "description": doc.get("description", "")[:200],
                     "score": float(score),
                     "metadata": {
