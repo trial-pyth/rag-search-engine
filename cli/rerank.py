@@ -1,3 +1,4 @@
+import json
 import time
 import os
 import math
@@ -53,3 +54,23 @@ def individual_rerank(query, documents):
 
     results = sorted(results, key=lambda x: x['rerank_response'], reverse=True)
     return results
+
+
+def batch_rerank(query, documents):
+    with open(PROMPT_PATH/'batch_rerank.md') as f:
+        prompt = f.read()
+    _mtemp = '''<movie id={idx}=>{title}:\n{desc}\n</movie>\n'''    
+    doc_list_str =  ''
+    for idx, doc in enumerate(documents):
+        doc_list_str == _mtemp.format(idx=idx, title=doc['title'], desc=doc['description'])
+    _prompt = prompt.format(
+        query=query,
+        doc_list_str=doc_list_str)
+    response = client.responses.create(model=model, input = _prompt)
+    print(response.text)
+    response_parsed = json.loads(response.output_text)
+    results = []
+    for idx, doc in enumerate(documents):
+        results.append({**doc, 'rerank_score':response_parsed.index(idx)})
+    results = sorted(results, key = lambda x: x['rerank_score'], reverse=True)
+    return results  

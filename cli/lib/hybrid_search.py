@@ -3,7 +3,7 @@ import os
 from .keyword_search import InvertedIndex
 from .semantic_search import ChunkedSemanticSearch
 from lib.search_utils import load_movies
-from rerank import individual_rerank
+from rerank import individual_rerank, batch_rerank
 from llm import correct_spelling, rewrite_query, expand_query, augment_prompt
 
 class HybridSearch:
@@ -55,9 +55,15 @@ def rrf_search(query, k=60, limit=5, enhance=None, rerank_method = None):
         query = new_query
     rrf_limit = limit*5 if rerank_method else 5
     results = hs.rrf_search(query, k, rrf_limit)
-    if rerank_method:
-        results = individual_rerank(query, results)
-        print(f"Reranking top {limit} results using individual method...")
+    match rerank_method:
+        case "individual":
+            results = individual_rerank(query, results)
+            print(f"Reranking top {limit} results using individual method...")
+        case "batch":
+            results = batch_rerank(query, results)
+            print(f"Reranking top {limit} results using bacth method...")
+        case _:
+            pass
 
     for idx, r in enumerate(results[:limit]):
         print(f"{idx+1} {r['title']}")
