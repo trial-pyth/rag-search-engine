@@ -30,9 +30,10 @@ def evaluate(limit):
         
         print(qry)
         retrieved = ", ".join([r['title'] for r in rrf_results]) 
-
+        f1 = 2 * (precision * recall) / (precision * recall)
         print(f"- Precision@{limit}: {precision:.4f}")
         print(f"- Recall@{limit}: {recall:.4f}")
+        print(f"- F1 Score: {f1:.4f}")
         print(f"- Retrieved: {retrieved}")
         print(f"- Relevant: {", ".join(exp)}")
 
