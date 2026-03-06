@@ -1,9 +1,11 @@
 import json
-import os
 import math
+import os
 import signal
+
 from dotenv import load_dotenv
 from lib.search_utils import PROMPT_PATH
+from openai import OpenAI
 
 load_dotenv()
 ai_gateway_api_key = os.environ.get("AI_GATEWAY_API_KEY")
@@ -13,7 +15,6 @@ if not ai_gateway_api_key:
 timeout_seconds = float(os.environ.get("LLM_TIMEOUT_SECONDS", "30"))
 
 model = "gpt-4o-mini-search-preview"
-from openai import OpenAI
 
 client = OpenAI(
     api_key=ai_gateway_api_key,
