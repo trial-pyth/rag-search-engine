@@ -18,7 +18,7 @@ def main() -> None:
     rrf_parser.add_argument('--k', type=int ,default=0.5 ,help='Value of constant alpha k')
     rrf_parser.add_argument('--limit', type=int, default=5 , help='Number of results to be returned')
     rrf_parser.add_argument('--enhance', type=str, choices=["spell", "rewrite", "expand"] , help='Query enhancement')
-    rrf_parser.add_argument('--rerank-method', type=str, choices=["individual", "batch"] , help='Rerank Method')
+    rrf_parser.add_argument('--rerank-method', type=str, choices=["individual", "batch", "cross_encoder"] , help='Rerank Method')
 
     args = parser.parse_args()
 

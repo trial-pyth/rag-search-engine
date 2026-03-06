@@ -3,7 +3,7 @@ import os
 from .keyword_search import InvertedIndex
 from .semantic_search import ChunkedSemanticSearch
 from lib.search_utils import load_movies
-from rerank import individual_rerank, batch_rerank
+from rerank import individual_rerank, batch_rerank, cross_encoder_rerank
 from llm import correct_spelling, rewrite_query, expand_query, augment_prompt
 
 class HybridSearch:
@@ -62,12 +62,18 @@ def rrf_search(query, k=60, limit=5, enhance=None, rerank_method = None):
         case "batch":
             results = batch_rerank(query, results)
             print(f"Reranking top {limit} results using bacth method...")
-        case _:
+        case "cross_encoder":
+            results = cross_encoder_rerank(query, results)
+            print(f"Re-ranking top {limit} results using cross_encoder method...")
+            print(f"Reciprocal Rank Fusion Results for '{query}' (k=60):")        
+        case _: 
             pass
 
     for idx, r in enumerate(results[:limit]):
         print(f"{idx+1} {r['title']}")
         print(f"RRF Score: {r['rrf_score']}")
+        if rerank_method:
+            print(f"Cross Encoder Score: {r['cross_encoder_score']}")
         print(f"BM25 Rank: {r['bm25_rank']}, Semantic Rank: {r['sem_rank']}")
         print(r['description'][:100])
 
