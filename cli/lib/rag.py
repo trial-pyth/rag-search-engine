@@ -1,4 +1,4 @@
-from llm import answer_question, citations_documents
+from llm import answer_question, citations_documents, detailed_question_answering
 from lib.hybrid_search import HybridSearch
 from lib.search_utils import load_movies
 
@@ -32,6 +32,17 @@ def doc_citations(query, limit):
         print(f" - {res['title']}")
     rag_results = citations_documents(query, rrf_results)
     print("LLM Answer:")
+    print(rag_results)
+
+def answer_detailed_question (query, limit):
+    movies = load_movies()
+    hs = HybridSearch(movies)
+    rrf_results = hs.rrf_search(query, k=60,limit = limit)
+    print("Seach Results")
+    for res in rrf_results:
+        print(f" - {res['title']}")
+    rag_results = detailed_question_answering(query, rrf_results)
+    print("Answer:")
     print(rag_results)
 
         
