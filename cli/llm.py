@@ -83,5 +83,8 @@ def _rag(query, documents, prompt_fname):
 def sumamrize_documents(query, documents):
     return _rag(query, documents, 'summarization.md') 
 
+def citations_documents(query, documents):
+    return _rag(query, documents, 'answer_with_citations.md') 
+
 
     
