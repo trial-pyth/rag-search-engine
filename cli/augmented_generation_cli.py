@@ -14,7 +14,7 @@ def main():
         "summzarize", help="Perform RAG (search + summzarize)"
     )
     summarization_parser.add_argument("query", type=str, help="Search query for RAG")
-    summarization_parser.add_argument("--limit", type=int, help="Search limit")
+    summarization_parser.add_argument("--limit", type=int, default = 5,  help="Search limit")
 
     args = parser.parse_args()
 
