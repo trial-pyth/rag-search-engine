@@ -34,12 +34,13 @@ def main() -> None:
     rrf_parser.add_argument('--limit', type=int, default=5 , help='Number of results to be returned')
     rrf_parser.add_argument('--enhance', type=str, choices=["spell", "rewrite", "expand"] , help='Query enhancement')
     rrf_parser.add_argument('--rerank-method', type=str, choices=["individual", "batch", "cross_encoder"] , help='Rerank Method')
+    rrf_parser.add_argument('--debug', type=str , help=' piece of title to track')
 
     args = parser.parse_args()
 
     match args.command:
         case "rrf-search":
-            rrf_search(args.query, args.k , args.limit, args.enhance, args.rerank_method)
+            rrf_search(args.query, args.k , args.limit, args.enhance, args.rerank_method, args.debug)
         case "weighted-search":
             weighted_search(args.query, args.alpha, args.limit)
         case "normalize":

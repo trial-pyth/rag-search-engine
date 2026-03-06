@@ -23,10 +23,16 @@ class HybridSearch:
         self.idx.load()
         return self.idx.bm25_search(query, limit)
 
-    def rrf_search(self, query, k, limit=10, enhance=None):
+    def rrf_search(self, query, k, limit=10, enhance=None, debug=None):
         bm25_results = self._bm25_search(query, limit*10)
         sem_results = self.semantic_search.search_chunks(query, limit=limit*10)
         combined_results = rrf_combine_search_results(bm25_results, sem_results, k)
+        print(f"RRF DEBUG={debug}")
+        if debug:
+           for r in combined_results:
+            if debug.lower().string() in r['title'].lower().split():
+                print(f"Phase 1 search for the {r['title']}") 
+                print(f"{r['bm25_rank']=} | {r['sem_rank']=}") 
         return combined_results[:limit]
 
     def weighted_search(self, query, alpha, limit=5):
@@ -46,7 +52,8 @@ def weighted_search(query, alpha=0.5, limit=5):
         print(f"BM25: {r['bm25_score']}, Semantic: {r['sem_score']}")
         print(r['description'][:100])
 
-def rrf_search(query, k=60, limit=5, enhance=None, rerank_method = None):
+def rrf_search(query, k=60, limit=5, enhance=None, rerank_method = None, debug=None):
+    if debug: print(f"Debugging for movie containing {debug}")
     movies= load_movies()
     hs = HybridSearch(movies)
     if enhance:
@@ -54,7 +61,14 @@ def rrf_search(query, k=60, limit=5, enhance=None, rerank_method = None):
         print(f"Enhanced query ({enhance}): '{query}' -> '{new_query}'\n")
         query = new_query
     rrf_limit = limit*5 if rerank_method else 5
-    results = hs.rrf_search(query, k, rrf_limit)
+    results = hs.rrf_search(query, k, rrf_limit, debug= debug)
+    if debug:
+        found = False
+        for idx, r in enumerate(results):
+            if debug.lower().strip() in r['title'].lower().strip() : 
+                found = True
+                break
+        print(f"[DEBUG]: Hybrid search position for {debug} is {idx if found else 'not found'}")
     match rerank_method:
         case "individual":
             results = individual_rerank(query, results)
@@ -68,7 +82,13 @@ def rrf_search(query, k=60, limit=5, enhance=None, rerank_method = None):
             print(f"Reciprocal Rank Fusion Results for '{query}' (k=60):")        
         case _: 
             pass
-
+    if debug:
+        found = False
+        for idx, r in enumerate(results):
+            if debug.lower().strip() in r['title'].lower().strip() : 
+                found = True
+                break
+        print(f"[DEBUG]: Reranking search position for {debug} is {idx if found else 'not found'}")
     for idx, r in enumerate(results[:limit]):
         print(f"{idx+1} {r['title']}")
         print(f"RRF Score: {r['rrf_score']}")
