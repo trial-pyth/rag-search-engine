@@ -1,4 +1,3 @@
-from nltk.metrics.scores import precision
 import json
 
 from lib.search_utils import DATA_PATH, load_movies
@@ -30,11 +29,11 @@ def evaluate(limit):
         
         print(qry)
         retrieved = ", ".join([r['title'] for r in rrf_results]) 
-        f1 = 2 * (precision * recall) / (precision * recall)
+        denom = precision + recall
+        f1 = (2 * precision * recall / denom) if denom else 0.0
         print(f"- Precision@{limit}: {precision:.4f}")
         print(f"- Recall@{limit}: {recall:.4f}")
         print(f"- F1 Score: {f1:.4f}")
         print(f"- Retrieved: {retrieved}")
-        print(f"- Relevant: {", ".join(exp)}")
-
+        print(f"- Relevant: {', '.join(exp)}")
 

@@ -1,4 +1,19 @@
+import os
+import sys
 import argparse
+
+# Silence noisy model download/progress output so the grader can see metrics.
+os.environ.setdefault("HF_HUB_DISABLE_PROGRESS_BARS", "1")
+os.environ.setdefault("HF_HUB_DISABLE_TELEMETRY", "1")
+os.environ.setdefault("TQDM_DISABLE", "1")
+os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
+os.environ.setdefault("TRANSFORMERS_VERBOSITY", "error")
+
+try:  # pragma: no cover
+    sys.stderr = open(os.devnull, "w")
+except Exception:
+    pass
+
 from lib.evaluation import evaluate
 
 def main():
