@@ -8,7 +8,7 @@ os.environ.setdefault("TQDM_DISABLE", "1")
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 os.environ.setdefault("TRANSFORMERS_VERBOSITY", "error")
 
-from lib.multimodal_search import verify_image_embedding
+from lib.multimodal_search import verify_image_embedding, image_search_command
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Multimodal Search CLI")
@@ -19,9 +19,17 @@ def main() -> None:
     )
     verify_parser.add_argument("image_fpath", type=str, help="Path to the image to process")
 
+    image_search_parser = subparsers.add_parser(
+        name="image_search", help="Search for movies based on an image"
+    )
+    image_search_parser.add_argument("image_fpath", type=str, help="Path to the image to process")
+    image_search_parser.add_argument("--limit",default =5 , type=int, help="umber of results to return")
+
     args = parser.parse_args()
 
     match args.command:
+        case "image_search":
+            image_search_command(args.image_fpath, args.limit)
         case "verify_image_embedding":
             verify_image_embedding(args.image_fpath)
         case _:
