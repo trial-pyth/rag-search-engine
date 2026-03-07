@@ -1,11 +1,10 @@
 import json
 import time
 import os
-import math
-import signal
 from dotenv import load_dotenv
 from sentence_transformers import CrossEncoder
 from lib.search_utils import PROMPT_PATH
+from openai import OpenAI
 
 load_dotenv()
 ai_gateway_api_key = os.environ.get("AI_GATEWAY_API_KEY")
@@ -15,7 +14,6 @@ if not ai_gateway_api_key:
 timeout_seconds = float(os.environ.get("LLM_TIMEOUT_SECONDS", "30"))
 
 model = "gpt-4o-mini-search-preview"
-from openai import OpenAI
 
 client = OpenAI(
     api_key=ai_gateway_api_key,
@@ -46,7 +44,7 @@ def individual_rerank(query, documents):
         clean_response_text = (response.output_text or "").strip()
         try:
             clean_response_text = int(clean_response_text)
-        except:
+        except Exception:
             print(f"Failed to case {response.output_text} to int for {doc['title']}")
             clean_response_text = 0
         results.append({**doc, 'rerank_response':clean_response_text})
